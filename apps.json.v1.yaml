@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: Apps API
+  version: '1.0'
+  description: 'API that allows for small '
+  contact: {}
+servers:
+  - url: 'https://api.box.com/2.0'
+tags:
+  - name: Apps
+paths:
+  /apps:
+    post:
+      summary: Create an app
+      tags:
+        - Apps
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/App'
+              examples:
+                Created OAuth 2.0 app:
+                  value:
+                    id: '12345'
+                    name: My custom application
+                    authentication_type: auth_code_grant
+                    cors_whitelist: 'https://example.com,https://www.example.com'
+                    scopes:
+                      - scope: root_readwrite
+                      - scope: manage_managed_users
+                    can_act_as_user: true
+                    callback_url: 'https://example.com/auth/callback'
+                Created App Token Auth app:
+                  value:
+                    id: '12345'
+                    name: My custom application
+                    authentication_type: app_token_auth
+                    cors_whitelist: 'https://example.com,https://www.example.com'
+                    scopes:
+                      - scope: item_upload
+                      - scope: item_preview
+                      - scope: item_delete
+                    can_act_as_user: false
+                    callback_url: null
+          headers: {}
+      operationId: post-apps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Create-App'
+            examples:
+              Create minimal OAuth 2.0 app:
+                value:
+                  name: My custom application
+                  authentication_type: auth_code_grant
+              Create minimal App Token Auth app:
+                value:
+                  name: My custom application
+                  authentication_type: app_token_auth
+              Create custom OAuth 2.0 app:
+                value:
+                  name: My custom application
+                  authentication_type: auth_code_grant
+                  cors_whitelist: 'https://example.com,https://www.example.com'
+                  scopes:
+                    - scope: root_readwrite
+                    - scope: manage_managed_users
+                  can_act_as_user: true
+                  callback_url: 'https://example.com/auth/callback'
+              Create custom App Token Auth app:
+                value:
+                  name: My custom application
+                  authentication_type: app_token_auth
+                  cors_whitelist: 'https://example.com,https://www.example.com'
+        description: ''
+      parameters:
+        - schema:
+            type: string
+            example: 'bearer [access token]'
+          in: header
+          name: authorization
+          description: Authorization header
+          required: true
+      description: The endpoint that allows for the creationof OAuth 2.0 and App Token Auth apps.
+components:
+  schemas:
+    Create-App:
+      title: App (Create)
+      type: object
+      x-examples:
+        Create a custom OAuth 2.0 app:
+          name: My custom application
+          authentication_type: auth_code_grant
+          cors_whitelist: 'https://example.com,https://www.example.com'
+          scopes:
+            - scope: root_readwrite
+            - scope: manage_managed_users
+          can_act_as_user: true
+          callback_url: 'https://example.com/auth/callback'
+        Create a custom App Token Auth app:
+          name: My custom application
+          authentication_type: app_token_auth
+          cors_whitelist: 'https://example.com,https://www.example.com'
+      properties:
+        name:
+          type: string
+          description: The name of the app to be created
+          example: My custom app
+        authentication_type:
+          type: string
+          enum:
+            - auth_code_grant
+            - app_token_auth
+          example: auth_code_grant
+          description: The application type to create. Currently we only aim to support OAuth 2.0 and App Token Auth.
+        cors_whitelist:
+          type: string
+          description: A list of origins that are enabled for Cross Origin Resource sharing
+          example: 'http://localhost:8000,https://example.com'
+        scopes:
+          type: array
+          description: An array of scopes to add to an app. A scope is a set of permissions that are allowed for an application. This can only be set for OAuth 2.0 apps and defaults to `root_readwrite`.
+          items:
+            type: object
+            description: A single scope object.
+            properties:
+              scope:
+                type: string
+                description: The name of the scope to apply.
+                example: manage_managed_users
+                enum:
+                  - root_readonly
+                  - root_readwrite
+                  - manage_managed_users
+                  - manage_groups
+                  - manage_webhook
+                  - manage_enterprise_properties
+                  - item_upload
+                  - item_delete
+                  - item_upload
+        can_act_as_user:
+          type: boolean
+          description: Defines if an app can act as another user using the As-User header.
+          example: true
+          default: false
+        callback_url:
+          type: string
+          description: The redirect URI used to redirect a user back to after they've granted the OAuth 2.0 app access to their account. Required if `authentication_type` is set to `auth_code_grant`.
+          example: 'https://example.com/auth/callback'
+      required:
+        - name
+        - authentication_type
+      x-tags:
+        - Apps
+    App:
+      title: App
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: |
+                The ID of the application.
+              default: '123456'
+        - $ref: '#/components/schemas/Create-App'
+      x-examples:
+        An OAuth 2.0 app:
+          id: '12345'
+          name: My custom application
+          authentication_type: auth_code_grant
+          cors_whitelist: 'https://example.com,https://www.example.com'
+          scopes:
+            - scope: root_readwrite
+            - scope: manage_managed_users
+          can_act_as_user: true
+          callback_url: 'https://example.com/auth/callback'
+        An App Token Auth App:
+          id: '12345'
+          name: My custom application
+          authentication_type: app_token_auth
+          cors_whitelist: 'https://example.com,https://www.example.com'
+          scopes:
+            - scope: item_upload
+            - scope: item_preview
+            - scope: item_delete
+          can_act_as_user: false
+          callback_url: null
+      x-tags:
+        - Apps
+  securitySchemes: {}
